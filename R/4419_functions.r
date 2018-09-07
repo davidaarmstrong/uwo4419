@@ -438,3 +438,28 @@ print.ktb <- function(x, ...){
   if(class(x) != "ktb")stop("Object must be of class ktb\n")
   cat("Kendall's Tau-b = ", round(x,3), "\n", sep="")
 }
+
+barplotStats <- function(x, y=NULL, stat="sum", ...){
+  dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
+    if(is.null(y)){y <- rep(1, length(x))}
+    ag <- aggregate(y, list(x),  stat)
+    if(!("names.arg" %in% names(dot.args))){
+      dot.args$names.arg = ag[,1]
+    }
+    dot.args$height = ag[,2]
+    do.call("barplot.default", dot.args)
+}
+
+sumStats <- function(data, vars){
+  X <- data[,vars, drop=FALSE]
+  means <- colMeans(X, na.rm=T)
+  sds <- apply(X, 2, sd, na.rm=T)
+  qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
+  iqr <- qtiles[,4]-qtiles[,2]
+  n <- apply(X, 2, function(x)sum(!is.na(x)))
+  na <- apply(X, 2, function(x)sum(is.na(x)))
+  out <- cbind(means, sds, iqr, qtiles, n, na)
+  colnames(out) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
+  out
+}
+
