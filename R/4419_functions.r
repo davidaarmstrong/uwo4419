@@ -439,10 +439,13 @@ print.ktb <- function(x, ...){
   cat("Kendall's Tau-b = ", round(x,3), "\n", sep="")
 }
 
-barplotStats <- function(x, y=NULL, stat="sum", ...){
+barplotStats <- function(x, y=NULL, stat="sum", pct=FALSE,...){
   dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
     if(is.null(y)){y <- rep(1, length(x))}
     ag <- aggregate(y, list(x),  stat)
+    if(pct){
+      ag[,2] <- ag[,2]/sum(ag[,2])
+    }
     if(!("names.arg" %in% names(dot.args))){
       dot.args$names.arg = ag[,1]
     }
@@ -463,3 +466,11 @@ sumStats <- function(data, vars){
   out
 }
 
+histNorm <- function(data, normCurve=TRUE, densCurve=FALSE, ...){
+  s <- seq(min(data, na.rm=TRUE), max(data, na.rm=T), length=100)
+  dn <- dnorm(s, mean(data, na.rm=T), sd(data, na.rm=TRUE))
+  dens <- density(na.omit(data))
+  hist(data, freq=FALSE, ...)
+  if(normCurve)lines(s, dn, col="black", lty=1)
+  if(densCurve)lines(dens, col="black", lty=2, lwd=1.5)
+}
