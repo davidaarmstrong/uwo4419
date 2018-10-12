@@ -474,3 +474,21 @@ histNorm <- function(data, normCurve=TRUE, densCurve=FALSE, ...){
   if(normCurve)lines(s, dn, col="black", lty=1)
   if(densCurve)lines(dens, col="black", lty=2, lwd=1.5)
 }
+
+propci <- function(x, n=NULL, conf.level=.95){
+  if(length(x) > 1){
+    n <- sum(!is.na(x))
+    p <- mean(x, na.rm=T)
+  }
+  else{
+    p <- x/n
+  }
+  zcrit <- abs(qnorm((1-conf.level)/2))
+  norm.ci <- p + c(-1,1)*zcrit * sqrt((p*(1-p))/n)
+  binom.ci <- c(qbeta((1-conf.level)/2, x, n - x + 1), qbeta(1 - ((1-conf.level)/2), x + 1, n - x))
+  out <- rbind(norm.ci, binom.ci)
+  colnames(out) <- c("Lower", "Upper")
+  rownames(out) <- c("Normal Approx", "Exact")
+  return(out)
+}
+
