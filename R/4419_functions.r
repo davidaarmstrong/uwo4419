@@ -272,12 +272,20 @@ searchVarLabels <- function(dat, str) UseMethod("searchVarLabels")
 searchVarLabels.data.frame <-
 function (dat, str)
 {
+    vlat <- NULL
     if ("var.labels" %in% names(attributes(dat))) {
         vlat <- "var.labels"
     }
     if ("variable.labels" %in% names(attributes(dat))) {
         vlat <- "variable.labels"
     }
+    natt <- sapply(1:ncol(dat), function(i)names(attributes(dat[[i]])))
+    natt1 <- unique(c(unlist(natt)))
+    if("label" %in% natt1){
+      haslabs <- sapply(natt, function(x)"label" %in% x)
+      vlat <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
+    }
+    if(is.null(vlat))stop("No Labels to Search")
     ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
     vldf <- data.frame(ind = ind, label = attr(dat, vlat)[ind])
     rownames(vldf) <- names(dat)[ind]
