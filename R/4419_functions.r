@@ -275,19 +275,23 @@ function (dat, str)
     vlat <- NULL
     if ("var.labels" %in% names(attributes(dat))) {
         vlat <- "var.labels"
+      ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
+      labs <- attr(dat, vlat)
     }
     if ("variable.labels" %in% names(attributes(dat))) {
         vlat <- "variable.labels"
+      ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
+      labs <- attr(dat, vlat)
     }
     natt <- sapply(1:ncol(dat), function(i)names(attributes(dat[[i]])))
     natt1 <- unique(c(unlist(natt)))
     if("label" %in% natt1){
       haslabs <- sapply(natt, function(x)"label" %in% x)
-      vlat <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
-    }
+      labs <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
+      ind <- sort(union(grep(str, labs, ignore.case = T), grep(str, names(dat), ignore.case = T)))
+  }
     if(is.null(vlat))stop("No Labels to Search")
-    ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
-    vldf <- data.frame(ind = ind, label = attr(dat, vlat)[ind])
+    vldf <- data.frame(ind = ind, label = labs[ind])
     rownames(vldf) <- names(dat)[ind]
     vldf
 }
