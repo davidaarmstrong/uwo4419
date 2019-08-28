@@ -13,8 +13,12 @@ inspect.tbl_df <- function(data, x, ...){
 inspect.data.frame <- function(data, x, ...){
   var.lab <- attr(data, "var.label")[which(names(data) == x)]
   if(is.null(var.lab)){var.lab <- "No Label Found"}
-  val.labs <- if(!is.null(levels(data[[x]]))){levels(data[[x]])}
+  if("labels" %in% names(attributes(data[[x]])))
+    val.labs <- attr(tmp, "labels")
+  else{
+  val.labs <- {if(!is.null(levels(data[[x]]))){levels(data[[x]])}
     else {sort(unique(data[[x]]))}
+  }
   tab <- cbind(freq = table(data[[x]]), prop = round(table(data[[x]])/sum(table(data[[x]]), na.rm=T), 3))
   out <- list(variable_label = var.lab, value_labels=t(t(val.labs)), freq_dist = tab)
   return(out)
