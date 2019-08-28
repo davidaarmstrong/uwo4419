@@ -287,7 +287,7 @@ function (dat, str)
     natt1 <- unique(c(unlist(natt)))
     if("label" %in% natt1){
       haslabs <- sapply(natt, function(x)"label" %in% x)
-      labs <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
+      labs <- vlat <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
       ind <- sort(union(grep(str, labs, ignore.case = T), grep(str, names(dat), ignore.case = T)))
   }
     if(is.null(vlat))stop("No Labels to Search")
