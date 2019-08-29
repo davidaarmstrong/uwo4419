@@ -13,7 +13,7 @@ inspect.tbl_df <- function(data, x, ...){
 inspect.data.frame <- function(data, x, ...){
   var.lab <- NULL
   var.lab <- attr(data, "var.label")[which(names(data) == x)]
-  if(is.null(var.lab) & "label" %in% names(attributes(data[[x]])){
+  if(is.null(var.lab) & "label" %in% names(attributes(data[[x]]))){
     var.lab <- attr(data[[x]], "label")
   }
   if(is.null(var.lab)){var.lab <- "No Label Found"}
