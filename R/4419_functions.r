@@ -531,11 +531,12 @@ propci <- function(x, n=NULL, conf.level=.95){
 }
 
 tTest <- function(x,y, data, ...){
-    formula <- as.formula(paste(y, x, sep=" ~ "))
-    tmp <- get_all_vars(formula, data)
-    tmp <- na.omit(tmp)
-    g <- vector(mode="list", length=3)
-  ng <- levels(droplevels(tmp[[x]]))
+  formula <- as.formula(paste(y, x, sep=" ~ "))
+  tmp <- get_all_vars(formula, data)
+  tmp <- na.omit(tmp)
+  if(is.factor(tmp[[x]]))tmp[[x]] <- droplevels(tmp[[x]])
+  g <- vector(mode="list", length=3)
+  ng <- levels(tmp[[x]])
   if(is.null(ng)){
     ng <- sort(unique(ng))
   }
