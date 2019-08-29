@@ -470,8 +470,13 @@ barplotStats <- function(x, y=NULL, stat="sum", pct=FALSE,...){
     do.call("barplot.default", dot.args)
 }
 
-sumStats <- function(data, vars){
+sumStats <- function(data, vars, convertFactors=FALSE){
   X <- data[,vars, drop=FALSE]
+  if(convertFactors){
+    for(i in 1:ncol(X)){
+      if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
+    }
+  }
   means <- colMeans(X, na.rm=T)
   sds <- apply(X, 2, sd, na.rm=T)
   qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
