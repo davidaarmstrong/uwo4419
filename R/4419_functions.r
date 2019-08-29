@@ -11,10 +11,14 @@ inspect.tbl_df <- function(data, x, ...){
   return(out)
 }
 inspect.data.frame <- function(data, x, ...){
+  var.lab <- NULL
   var.lab <- attr(data, "var.label")[which(names(data) == x)]
+  if(is.null(var.lab) & "label" %in% names(attributes(data[[x]])){
+    var.lab <- attr(data[[x]], "label")
+  }
   if(is.null(var.lab)){var.lab <- "No Label Found"}
   if("labels" %in% names(attributes(data[[x]])))
-    val.labs <- attr(tmp, "labels")
+    val.labs <- attr(data[[x]], "labels")
   else{
   val.labs <- {if(!is.null(levels(data[[x]]))){levels(data[[x]])}
     else {sort(unique(data[[x]]))}
@@ -526,3 +530,7 @@ propci <- function(x, n=NULL, conf.level=.95){
   return(out)
 }
 
+tTest <- function(formula, data, ...){
+  tmp <- get_all_ 
+
+}
