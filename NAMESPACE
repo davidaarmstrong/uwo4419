@@ -1,4 +1,5 @@
 import(stats)
+import(ggplot)
 importFrom("graphics", "par", "strwidth", "hist")
 importFrom("gmodels", "CrossTable")
 importFrom("DescTools", "ConDisPairs")

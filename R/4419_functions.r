@@ -483,13 +483,20 @@ sumStats <- function(data, vars){
   out
 }
 
-histNorm <- function(data, normCurve=TRUE, densCurve=FALSE, ...){
-  s <- seq(min(data, na.rm=TRUE), max(data, na.rm=T), length=100)
-  dn <- dnorm(s, mean(data, na.rm=T), sd(data, na.rm=TRUE))
-  dens <- density(na.omit(data))
-  hist(data, freq=FALSE, ...)
-  if(normCurve)lines(s, dn, col="black", lty=1)
-  if(densCurve)lines(dens, col="black", lty=2, lwd=1.5)
+histNorm <- function(variable, data, normCurve=TRUE, densCurve=FALSE, bins=30){
+  s <- seq(min(data[[variable]], na.rm=TRUE), max(data[[variable]], na.rm=T), length=100)
+  dn <- dnorm(s, mean(data[[variable]], na.rm=T), sd(data[[variable]], na.rm=TRUE))
+  tmp <- data[[variable]]
+  dens <- density(na.omit(tmp))
+  dens <- data.frame(x=dens$x, y=dens$y)
+  g <- ggplot(data, aes_string(x=variable)) + geom_histogram(aes(y=stat(density)), bins=bins, color="black", fill="gray70")
+  if(normCurve){
+    g <- g+stat_function(fun=dnorm, n=101, args=list(mean=mean(data[[variable]], na.rm=TRUE), sd=sd(data[[variable]], na.rm=TRUE)), color="blue")
+  }
+  if(densCurve){
+    g <- g+geom_line(data=dens, aes(x=x,y=y), color="red")
+  }
+  g
 }
 
 propci <- function(x, n=NULL, conf.level=.95){
