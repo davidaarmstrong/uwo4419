@@ -530,7 +530,34 @@ propci <- function(x, n=NULL, conf.level=.95){
   return(out)
 }
 
-tTest <- function(formula, data, ...){
-  tmp <- get_all_ 
+tTest <- function(x,y, data, ...){
+    formula <- as.formula(paste(y, x, sep=" ~ "))
+    tmp <- get_all_vars(formula, data)
+    tmp <- na.omit(tmp)
+    g <- vector(mode="list", length=3)
+  ng <- levels(droplevels(tmp[[x]]))
+  if(is.null(ng)){
+    ng <- sort(unique(ng))
+  }
+  tt <- t.test(formula, data, ...)
+  names(g) <- c(ng, "Difference")
+  g[[1]]$mean <- mean(tmp[[y]][which(tmp[[x]] == ng[1])], na.rm=TRUE)
+  g[[1]]$n <- sum(tmp[[x]] == ng[1])
+  g[[1]]$se <- sd(tmp[[y]][which(tmp[[x]] == ng[1])], na.rm=TRUE)
+  g[[2]]$mean <- mean(tmp[[y]][which(tmp[[x]] == ng[2])], na.rm=TRUE)
+  g[[2]]$n <- sum(tmp[[x]] == ng[2])
+  g[[2]]$se <- sd(tmp[[y]][which(tmp[[x]] == ng[2])], na.rm=TRUE)
+  g[[3]]$mean <- g[[1]]$mean - g[[2]]$mean
+  g[[3]]$n <- g[[1]]$n+g[[2]]$n
+  g[[3]]$se <- tt$stderr
+  res <- list(sum=do.call(rbind, g), tt=tt)
+  class(res) <- "tTest"
+  print(res)
+}
 
+print.tTest <- function(x, ...){
+  cat("Summary:\n")
+  print(x$sum)
+  cat("\n")
+  print(x$tt)
 }

@@ -12,6 +12,7 @@ importFrom("graphics", "abline", "arrows", "axis", "box", "plot",
 S3method(print, ktb)
 S3method(print, gkg)
 S3method(print, pwc)
+S3method(print, tTest)
 S3method(searchVarLabels, data.frame)
 S3method(searchVarLabels, tbl_df)
 S3method(inspect, data.frame)
