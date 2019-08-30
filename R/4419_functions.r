@@ -437,21 +437,44 @@ barplotStats <- function(x, y, data, stat="sum", ...){
   ggplot(data, aes_string(x=x, y=y)) + stat_summary(fun.y = stat, geom="bar", fun.args=dot.args)
 }
 
-sumStats <- function(data, vars, convertFactors=FALSE){
-  X <- data[,vars, drop=FALSE]
-  if(convertFactors){
-    for(i in 1:ncol(X)){
-      if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
+sumStats <- function(data, vars, byvar=NULL, convertFactors=FALSE){
+  if(is.null(byvar)){
+    X <- data[,vars, drop=FALSE]
+    if(convertFactors){
+      for(i in 1:ncol(X)){
+        if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
+      }
+    }
+    means <- colMeans(X, na.rm=T)
+    sds <- apply(X, 2, sd, na.rm=T)
+    qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
+    iqr <- qtiles[,4]-qtiles[,2]
+    n <- apply(X, 2, function(x)sum(!is.na(x)))
+    na <- apply(X, 2, function(x)sum(is.na(x)))
+    out <- cbind(means, sds, iqr, qtiles, n, na)
+    colnames(out) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
+  }
+  else{
+    unvals <- unique(na.omit(data[[byvar]]))
+    out <- vector(mode="list", length=length(unvals))
+    for(i in 1:length(unvals)){
+      X <- data[which(data[[byvar]] == unvals[i]),vars, drop=FALSE]
+      if(convertFactors){
+        for(i in 1:ncol(X)){
+          if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
+        }
+      }
+      means <- colMeans(X, na.rm=T)
+      sds <- apply(X, 2, sd, na.rm=T)
+      qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
+      iqr <- qtiles[,4]-qtiles[,2]
+      n <- apply(X, 2, function(x)sum(!is.na(x)))
+      na <- apply(X, 2, function(x)sum(is.na(x)))
+      out[[i]] <- cbind(means, sds, iqr, qtiles, n, na)
+      colnames(out[[i]]) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
+      names(out)[[i]] <- paste(byvar, " = ", unvals[i], sep="")
     }
   }
-  means <- colMeans(X, na.rm=T)
-  sds <- apply(X, 2, sd, na.rm=T)
-  qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
-  iqr <- qtiles[,4]-qtiles[,2]
-  n <- apply(X, 2, function(x)sum(!is.na(x)))
-  na <- apply(X, 2, function(x)sum(is.na(x)))
-  out <- cbind(means, sds, iqr, qtiles, n, na)
-  colnames(out) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
   out
 }
 
