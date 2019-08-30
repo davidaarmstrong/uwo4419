@@ -239,6 +239,9 @@ plotCIgroup <- function(form, data, includeOverall=TRUE, ...){
     cfun <- function(x, ...){tmp <- confidenceInterval(x, ...); data.frame(y = tmp[1], ymin = tmp[2], ymax=tmp[3])}
     dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
     mf <- model.frame(form, data)
+    if(is.factor(mf[[2]])){
+      mf[[2]] <- droplevels(mf[[2]])
+    }
     nums <- sort(unique(as.numeric(mf[[2]])))
     if(includeOverall){
       mf2 <- mf
