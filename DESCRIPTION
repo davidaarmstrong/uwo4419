@@ -1,10 +1,10 @@
 Package: uwo4419
 Type: Package
 Title: UWO POLSCI 4419/9715
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(person("Dave", "Armstrong", role=c("aut", "cre"), email="dave@quantoid.net"))
 Description: Supports the course Introduction to Methodology (POLSCI 4419/9715) at the University of Western Ontario.
-Imports: DescTools, RColorBrewer, gmodels, haven, lattice, psych, stats
+Imports: DescTools, RColorBrewer, gmodels, haven, lattice, psych, stats, ggplot2
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true

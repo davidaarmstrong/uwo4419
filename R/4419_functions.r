@@ -235,48 +235,21 @@ pmc <- function(obj, col=RColorBrewer::brewer.pal(6, "RdBu"), ...){
   return(lattice::levelplot(R, at=c(-1, -.75, -.5, 0, .5, .75, 1), col.regions=col, ..., xlab="", ylab="", scales=list(x=list(rot=90))))
 }
 
-plotCIgroup <- function(form, data, horiz=FALSE,
-    arrowlen = 0, includeOverall=TRUE, distr=c("normal", "t"), conflevel = .95, las=2, ...){
+plotCIgroup <- function(form, data, includeOverall=TRUE, ...){
+    cfun <- function(x, ...){tmp <- confidenceInterval(x, ...); data.frame(y = tmp[1], ymin = tmp[2], ymax=tmp[3])}
+    dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
     mf <- model.frame(form, data)
-    resp <- mf[,1]
-    fac <- mf[,2]
+    nums <- sort(unique(as.numeric(mf[[2]])))
     if(includeOverall){
-        lfac <- levels(fac)
-        fac <- factor(c(as.character(fac), rep("All Obs", length(resp))), levels=c(lfac, "All Obs"))
-        resp <- c(c(resp), c(resp))
+      mf2 <- mf
+      mf2[[2]] <- factor(max(nums)+1, levels=c(nums, max(nums)+1), labels=c(levels(mf[[2]]), "Overall"))
+      levels(mf[[2]]) <- c(levels(mf[[2]]), "Overall")
+      mf <- rbind(mf, mf2)
     }
-    ag <- do.call(rbind, by(resp, list(fac), function(x)confidenceInterval(x, distr=distr,
-       confidence=conflevel)))
-    ngroup <- nrow(ag)
-    if(!horiz){
-        yl <- range(c(ag[,2:3]))
-        xd <- (ngroup-1)*.25
-        xl <- c(1-xd, ngroup + xd)
-        plot(xl, yl, axes=F, type="n", xlab="", ...)
-        points(1:ngroup, ag[,1], ...)
-        axis(1, at=1:ngroup, labels=rownames(ag), las=las)
-        axis(2)
-        box()
-        arrows(1:ngroup, ag[,2], 1:ngroup, ag[,3], code=3, length=arrowlen)
-        if(includeOverall){
-            abline(v=(max(as.numeric(fac))-.5), lty=2)
-        }
-    }
-    if(horiz){
-        yl <- range(c(ag[,2:3]))
-        xd <- (ngroup-1)*.25
-        xl <- c(1-xd, ngroup + xd)
-        plot(yl, xl, axes=F, type="n", ylab="", ...)
-        points(ag[,1], 1:ngroup, ...)
-        axis(2, at=1:ngroup, labels=rownames(ag), las=las)
-        axis(1)
-        box()
-        arrows(ag[,2], 1:ngroup, ag[,3], 1:ngroup, code=3, length=arrowlen)
-        if(includeOverall){
-            abline(h=(max(as.numeric(fac))-.5), lty=2)
-        }
-    }
+    
+    ggplot(mf, aes_string(x=names(mf)[2], y=names(mf)[1])) + stat_summary(fun.data=cfun, fun.args = dot.args)
 }
+
 searchVarLabels <- function(dat, str) UseMethod("searchVarLabels")
 searchVarLabels.data.frame <-
 function (dat, str)
@@ -334,10 +307,9 @@ freqDist <- function(x){
   noquote(out)
 }
 
-histDiscrete <- function(x, ...){
-    l <- max(x, na.rm=T)
-    b <- seq(.5, l+.5, by=1)
-    hist(x, breaks=b, ...)
+histDiscrete <- function(x, data, ...){
+  m <- min(data[[x]], na.rm=TRUE)    
+  ggplot(data, aes_string(x=x)) + geom_histogram(binwidth=1, center=m, color="black", fill="gray75")
 }
 
 unalike <- function(x){
@@ -460,18 +432,9 @@ print.ktb <- function(x, ...){
   cat("Kendall's Tau-b = ", round(x,3), "\n", sep="")
 }
 
-barplotStats <- function(x, y=NULL, stat="sum", pct=FALSE,...){
+barplotStats <- function(x, y, data, stat="sum", ...){
   dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
-    if(is.null(y)){y <- rep(1, length(x))}
-    ag <- aggregate(y, list(x),  stat)
-    if(pct){
-      ag[,2] <- ag[,2]/sum(ag[,2])
-    }
-    if(!("names.arg" %in% names(dot.args))){
-      dot.args$names.arg = ag[,1]
-    }
-    dot.args$height = ag[,2]
-    do.call("barplot.default", dot.args)
+  ggplot(data, aes_string(x=x, y=y)) + stat_summary(fun.y = stat, geom="bar", fun.args=dot.args)
 }
 
 sumStats <- function(data, vars, convertFactors=FALSE){
@@ -492,18 +455,18 @@ sumStats <- function(data, vars, convertFactors=FALSE){
   out
 }
 
-histNorm <- function(variable, data, normCurve=TRUE, densCurve=FALSE, bins=30){
-  s <- seq(min(data[[variable]], na.rm=TRUE), max(data[[variable]], na.rm=T), length=100)
-  dn <- dnorm(s, mean(data[[variable]], na.rm=T), sd(data[[variable]], na.rm=TRUE))
-  tmp <- data[[variable]]
+histNorm <- function(x, data, normCurve=TRUE, densCurve=FALSE, bins=30){
+  s <- seq(min(data[[x]], na.rm=TRUE), max(data[[x]], na.rm=T), length=100)
+  dn <- dnorm(s, mean(data[[x]], na.rm=T), sd(data[[x]], na.rm=TRUE))
+  tmp <- data[[x]]
   dens <- density(na.omit(tmp))
   dens <- data.frame(x=dens$x, y=dens$y)
-  g <- ggplot(data, aes_string(x=variable)) + geom_histogram(aes(y=stat(density)), bins=bins, color="black", fill="gray70")
+  g <- ggplot(data, aes_string(x=x)) + geom_histogram(aes(y=stat(density)), bins=bins, color="black", fill="gray70")
   if(normCurve){
-    g <- g+stat_function(fun=dnorm, n=101, args=list(mean=mean(data[[variable]], na.rm=TRUE), sd=sd(data[[variable]], na.rm=TRUE)), color="blue")
+    g <- g+stat_function(fun=dnorm, n=101, args=list(mean=mean(data[[x]], na.rm=TRUE), sd=sd(data[[x]], na.rm=TRUE)), color="blue")
   }
   if(densCurve){
-    g <- g+geom_line(data=dens, aes(x=x,y=y), color="red")
+    g <- g+geom_line(data=dens, aes_string(x="x",y="y"), color="red")
   }
   g
 }

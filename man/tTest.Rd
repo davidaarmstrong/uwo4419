@@ -11,7 +11,7 @@ tTest(x, y, data, ...)
 \arguments{
   \item{x}{Character string giving name of grouping variable.}
   \item{y}{Character string giving name of continuous variable. }
-  \item{Data where both \code{x} and \code{y} can be found.}
+  \item{data}{Data where both \code{x} and \code{y} can be found.}
   \item{...}{Other arguments to be passed down to the \code{t.test} function.}
 }
 \value{
