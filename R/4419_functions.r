@@ -527,7 +527,7 @@ tTest <- function(x,y, data, ...){
   g <- vector(mode="list", length=3)
   ng <- levels(tmp[[x]])
   if(is.null(ng)){
-    ng <- sort(unique(ng))
+    ng <- sort(unique(tmp[[x]]))
   }
   tt <- t.test(formula, data, ...)
   names(g) <- c(ng, "Difference")
