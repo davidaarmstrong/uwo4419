@@ -542,7 +542,7 @@ tTest <- function(x,y, data, ...){
   g[[3]]$se <- tt$stderr
   res <- list(sum=do.call(rbind, g), tt=tt)
   class(res) <- "tTest"
-  print(res)
+  res
 }
 
 print.tTest <- function(x, ...){
@@ -550,4 +550,32 @@ print.tTest <- function(x, ...){
   print(x$sum)
   cat("\n")
   print(x$tt)
+}
+
+all_tTest <- function(x, y, data, ...){
+  unx <- sort(unique(data[[x]]))
+  combs <- combn(length(unx), 2)
+  res <- vector(mode="list", length=ncol(combs))
+  for(i in 1:ncol(combs)){
+    tmp <- subset(data, data[[x]] %in% unx[combs[,i]])
+    res[[i]] <- tTest(x, y, tmp, ...)
+  }
+  names(res) <- apply(apply(combs, 2, function(i)unx[i]), 2, paste, collapse="-")
+  class(res) <- "allTT"
+  return(res)
+}
+
+print.allTT <- function(x, ...){
+  x1 <- t(sapply(x, function(z)c(unlist(c(z$sum[1,1], z$sum[2,1], z$sum[3,], z$tt$p.value)))))
+  xp1 <- array(dim=dim(x1))
+  xp1[,1] <- sprintf("%.3f", x1[,1])
+  xp1[,2] <- sprintf("%.3f", x1[,2])
+  xp1[,3] <- sprintf("%.3f", x1[,3])
+  xp1[,4] <- sprintf("%.0f", x1[,4])
+  xp1[,5] <- sprintf("%.3f", x1[,5])
+  xp1[,6] <- sprintf("%.3f", x1[,6])
+  colnames(xp1) <- c("Mean G1", "Mean G2", "Difference", "N", "SE", "p-val")
+  rownames(xp1) <- rownames(x1)
+  xp1 <- as.data.frame(xp1)
+  print(xp1)
 }
