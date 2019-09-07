@@ -552,7 +552,8 @@ print.tTest <- function(x, ...){
   print(x$tt)
 }
 
-all_tTest <- function(x, y, data, ...){
+all_tTest <- function(x, y, data, adjust.method= c("none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"), ...){
+  adjust.method <- match.arg(adjust.method)
   unx <- sort(unique(data[[x]]))
   combs <- combn(length(unx), 2)
   res <- vector(mode="list", length=ncol(combs))
@@ -561,19 +562,21 @@ all_tTest <- function(x, y, data, ...){
     res[[i]] <- tTest(x, y, tmp, ...)
   }
   names(res) <- apply(apply(combs, 2, function(i)unx[i]), 2, paste, collapse="-")
+  attr(res, "adjust.method") <- adjust.method
   class(res) <- "allTT"
   return(res)
 }
 
 print.allTT <- function(x, ...){
   x1 <- t(sapply(x, function(z)c(unlist(c(z$sum[1,1], z$sum[2,1], z$sum[3,], z$tt$p.value)))))
+  adj <- attr(x, "adjust.method")
   xp1 <- array(dim=dim(x1))
   xp1[,1] <- sprintf("%.3f", x1[,1])
   xp1[,2] <- sprintf("%.3f", x1[,2])
   xp1[,3] <- sprintf("%.3f", x1[,3])
   xp1[,4] <- sprintf("%.0f", x1[,4])
   xp1[,5] <- sprintf("%.3f", x1[,5])
-  xp1[,6] <- sprintf("%.3f", x1[,6])
+  xp1[,6] <- sprintf("%.3f", p.adjust(x1[,6], adj))
   colnames(xp1) <- c("Mean G1", "Mean G2", "Difference", "N", "SE", "p-val")
   rownames(xp1) <- rownames(x1)
   xp1 <- as.data.frame(xp1)

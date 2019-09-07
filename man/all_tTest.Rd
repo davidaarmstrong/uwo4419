@@ -6,12 +6,13 @@
 Produces a more helpful summary of the existing \code{t.test} function. 
 }
 \usage{
-all_tTest(x, y, data, ...)
+all_tTest(x, y, data, adjust.method= c("none", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr"), ...)
 }
 \arguments{
   \item{x}{Character string giving name of grouping variable.}
   \item{y}{Character string giving name of continuous variable. }
   \item{data}{Data where both \code{x} and \code{y} can be found.}
+  \item{adjust.method}{Method to for adjusting p-values for multiple testing.  It uses the same set of choices as \code{p.adjust}.  }
   \item{...}{Other arguments to be passed down to the \code{t.test} function.}
 }
 \value{
