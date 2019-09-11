@@ -435,8 +435,13 @@ print.ktb <- function(x, ...){
   cat("Kendall's Tau-b = ", round(x,3), "\n", sep="")
 }
 
-barplotStats <- function(x, y, data, stat="sum", ...){
+barplotStats <- function(x, y, data, stat="sum", includeN = FALSE, ...){
   dot.args <- as.list(match.call(expand.dots = FALSE)$`...`)
+  if(includeN){
+    data[[x]] <- droplevels(data[[x]])
+    tabx <- table(data[[x]])
+    levels(data[[x]]) <- paste(levels(data[[x]]), "\n(", tabx, ")", sep="")
+  }
   ggplot(data, aes_string(x=x, y=y)) + stat_summary(fun.y = stat, geom="bar", fun.args=dot.args)
 }
 
