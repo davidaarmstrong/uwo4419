@@ -483,9 +483,11 @@ sumStats <- function(data, vars, byvar=NULL, convertFactors=FALSE){
       names(out)[[i]] <- paste(byvar, " = ", unvals[i], sep="")
     }
   }
-  n <- names(out)
-  out <- do.call(rbind, out)
-  rownames(out) <- n
+  if(length(out) > 1){
+    n <- names(out)
+    out <- do.call(rbind, out)
+    rownames(out) <- n
+  }
   out
 }
 
