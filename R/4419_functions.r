@@ -463,7 +463,10 @@ sumStats <- function(data, vars, byvar=NULL, convertFactors=FALSE){
     colnames(out) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
   }
   else{
-    unvals <- unique(na.omit(data[[byvar]]))
+    if(!is.factor(data[[byvar]])){
+      data[[byvar]] <- as.factor(data[[byvar]])
+    }
+    unvals <- levels(data[[byvar]])
     out <- vector(mode="list", length=length(unvals))
     for(i in 1:length(unvals)){
       X <- data[which(data[[byvar]] == unvals[i]),vars, drop=FALSE]
@@ -483,7 +486,7 @@ sumStats <- function(data, vars, byvar=NULL, convertFactors=FALSE){
       names(out)[[i]] <- paste(byvar, " = ", unvals[i], sep="")
     }
   }
-  if(length(out) > 1){
+  if(class(out) == "list" & length(vars) == 1){
     n <- names(out)
     out <- do.call(rbind, out)
     rownames(out) <- n
