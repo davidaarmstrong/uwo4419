@@ -12,7 +12,7 @@ unalike(x)
 The unalikability score.
 }
 \references{
-Gary D. Kader and Mike Perry (2007)  \sQuote{Variability for Categorical Variables} Journal of Statistics Education Volume 15, Number 2. \url{http://ww2.amstat.org/publications/jse/v15n2/kader.html}
+Gary D. Kader and Mike Perry (2007)  \sQuote{Variability for Categorical Variables} Journal of Statistics Education Volume 15, Number 2. \url{http://jse.amstat.org/v15n2/kader.html}
 }
 \examples{
 data(Alberta)
