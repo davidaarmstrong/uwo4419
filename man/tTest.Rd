@@ -3,7 +3,7 @@
 \alias{print.tTest}
 \title{Difference of Means Test}
 \description{
-Produces a more helpful summary of the existing \code{t.test} function. 
+Produces a more helpful summary of the existing \code{t.test} function.
 }
 \usage{
 tTest(x, y, data, ...)
@@ -15,9 +15,14 @@ tTest(x, y, data, ...)
   \item{...}{Other arguments to be passed down to the \code{t.test} function.}
 }
 \value{
-A list of class \code{tTest} with two elements: 
+A list of class \code{tTest} with two elements:
 \describe{
   \item{sum}{Means, n, and standard errors for both groups and the difference.}
   \item{tt}{The result produced by \code{t.test}.}
 }
+}
+\examples{
+data(alberta)
+alberta$sex <- rio::factorize(alberta$sex)
+tTest("sex", "k7", data=alberta)
 }

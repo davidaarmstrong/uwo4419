@@ -5,7 +5,7 @@ Version: 0.2.1
 Authors@R: c(person("Dave", "Armstrong", role=c("aut", "cre"), email="dave@quantoid.net"))
 Description: Supports the course Introduction to Methodology (POLSCI 4419/9715) at the University of Western Ontario.
 Depends: R (>= 3.5.0)
-Imports: DescTools, RColorBrewer, gmodels, haven, lattice, psych, stats, ggplot2
+Imports: DescTools, RColorBrewer, gmodels, haven, psych, stats, ggplot2, tibble, tidyr, dplyr, magrittr, rio
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true

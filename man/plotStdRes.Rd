@@ -2,15 +2,21 @@
 \alias{plotStdRes}
 \title{Plot Standardized Residuals from a Cross-tabulation}
 \description{
-Uses \code{levelplot} to visualize the standardized residuals from a cross-tabulation}
+Uses \code{ggplot2} to visualize the standardized residuals from a cross-tabulation}
 \usage{
-plotStdRes(x, col = RColorBrewer::brewer.pal(10, "RdBu"), ...)
+plotStdRes(x)
 }
 \arguments{
   \item{x}{A cross-tabulation of two variables}
-  \item{col}{A vector of colrs.  Defaults to the \code{RdBu} palette from the \pkg{RColorBrewer} package.}
-  \item{\dots}{Other arguments to be passed down to \code{\link{levelplot}}.}
 }
 \value{
-A lattice graph
+A ggplot
 }
+\examples{
+alberta$k6group <- rio::factorize(alberta$k6group)
+alberta$d2 <- rio::factorize(alberta$d2)
+tab <- with(alberta, table(k6group, d2))
+plotStdRes(tab)
+}
+
+

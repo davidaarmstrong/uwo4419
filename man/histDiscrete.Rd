@@ -13,3 +13,10 @@ histDiscrete(x, data, ...)
 \value{
 A \code{ggplot}.
 }
+\examples{
+data(alberta)
+alberta$k3c <- ifelse(alberta$k3c > 11, NA, alberta$k3c)
+histDiscrete("k3c", alberta)
+}
+
+

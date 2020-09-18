@@ -34,3 +34,7 @@ makeStats(x, y, chisq = FALSE, phi = FALSE, cramersV = FALSE, lambda = FALSE,
 \value{
   A matrix of statistics and simulated p-values.
 }
+\examples{
+data(alberta)
+makeStats(alberta$k6group, alberta$d2, chisq=TRUE, taub=TRUE)
+}

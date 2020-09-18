@@ -15,3 +15,10 @@ histNorm(x, data, normCurve=TRUE, densCurve=FALSE, bins=30)
 \value{
 A \code{ggplot}
 }
+\examples{
+data(alberta)
+alberta$age <- ifelse(alberta$age > 94, NA, alberta$age)
+histNorm("age", alberta)
+}
+
+

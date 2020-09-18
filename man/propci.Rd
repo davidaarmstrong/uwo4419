@@ -14,3 +14,7 @@ propci(x, n=NULL, conf.level=.95)
 \value{
 A matrix giving the normal approximation and exact confidence intervals.
 }
+\examples{
+data(alberta)
+propci(alberta$sex-1)
+}

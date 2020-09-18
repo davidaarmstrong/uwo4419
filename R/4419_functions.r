@@ -1,34 +1,4 @@
 
-inspect <- function(data, x, ...)UseMethod("inspect")
-inspect.tbl_df <- function(data, x, ...){
-  tmp <- data[[as.character(x)]]
-  var.lab <- attr(tmp, "label")
-  if(is.null(var.lab)){var.lab <- "No Label Found"}
-  val.labs <- attr(tmp, "labels")
-  if(is.null(val.labs)){val.labs <- sort(unique(tmp))}
-  tab <- cbind(freq = table(tmp), prop = round(table(tmp)/sum(table(tmp), na.rm=T), 3))
-  out <- list(variable_label = var.lab, value_labels=t(t(val.labs)), freq_dist = tab)
-  return(out)
-}
-inspect.data.frame <- function(data, x, ...){
-  var.lab <- NULL
-  var.lab <- attr(data, "var.label")[which(names(data) == x)]
-  if(is.null(var.lab) & "label" %in% names(attributes(data[[x]]))){
-    var.lab <- attr(data[[x]], "label")
-  }
-  if(is.null(var.lab)){var.lab <- "No Label Found"}
-  if("labels" %in% names(attributes(data[[x]])))
-    val.labs <- attr(data[[x]], "labels")
-  else{
-  val.labs <- {if(!is.null(levels(data[[x]]))){levels(data[[x]])}
-    else {sort(unique(data[[x]]))}
-  }
-  }
-  tab <- cbind(freq = table(data[[x]]), prop = round(table(data[[x]])/sum(table(data[[x]]), na.rm=T), 3))
-  out <- list(variable_label = var.lab, value_labels=t(t(val.labs)), freq_dist = tab)
-  return(out)
-}
-
 ## concordant, discordant, tau.b, tau.c, ord.somers.d, ord.gamma come from the ryouready package
 ## Phi and V come from the DescTools package
 concordant <- function (x) {
@@ -214,7 +184,8 @@ if(!is.null(allStats)){
 return(allStats)
 }
 
-plotStdRes <- function(x, col=RColorBrewer::brewer.pal(10, "RdBu"), ...){
+plotStdRes <- function(x){
+  stdcat <- NULL
   x2 <- chisq.test(x)
   res <- x2$stdres
   minres <- ifelse(min(c(res)) > -3.5, -3.5, min(c(res)))
@@ -225,15 +196,40 @@ plotStdRes <- function(x, col=RColorBrewer::brewer.pal(10, "RdBu"), ...){
   if(maxres < abs(minres)){
     maxres <- -minres
   }
-  lattice::levelplot(res, col.regions=col, cuts=10, at=c(minres, -3, -2, -1, 0, 1, 2, 3, maxres), ...)
+  res <- tibble::as_tibble(res)
+  if(all(dim(res) == dim(x))){
+    res <- x2$stdres
+    if(is.null(rownames(res))){
+      rownames(res) <- paste0("row", 1:nrow(res))
+    }
+    if(is.null(colnames(res))){
+      colnames(res) <- paste0("col", 1:ncol(res))
+    }
+    res <- res %>%
+      pivot_longer(-row, names_to="col", values_to="stdres")
+  }else{
+    res <- res %>%
+      rename("stdres" = "n")
+  }
+
+  res <- res %>%
+    mutate(stdcat = case_when(
+            stdres < -3 ~ "e < -3",
+            stdres>= -3 & stdres < -2 ~ "-3 <= e < 2",
+            stdres>= -2 & stdres < -1 ~ "-2 <= e < 1",
+            stdres>= -1 & stdres < 0 ~ "-1 <= e < 0",
+            stdres>= 0 & stdres < 1 ~ "0 <= e < 1",
+            stdres>= 1 & stdres < 2 ~ "1 <= e < 2",
+            stdres>= 2 & stdres < 3 ~ "2 <= e < 3",
+            stdres > 3 ~ "e > 3"),
+          stdcat = factor(stdcat, levels=c("e < -3", "-3 <= e < 2", "-2 <= e < 1", "-1 <= e < 0",
+                                           "0 <= e < 1", "1 <= e < 2", "2 <= e < 3", "e > 3")) )
+
+  ggplot(res, aes_string(x=names(res)[1], y=names(res)[2],fill="stdcat")) +
+    geom_tile(col="gray50") +
+    labs(fill = "Standardized\nResidual")
 }
 
-pmc <- function(obj, col=RColorBrewer::brewer.pal(6, "RdBu"), ...){
-  X <- model.matrix(obj)[,-1]
-  R <- cor(X)
-  diag(R) <- 0
-  return(lattice::levelplot(R, at=c(-1, -.75, -.5, 0, .5, .75, 1), col.regions=col, ..., xlab="", ylab="", scales=list(x=list(rot=90))))
-}
 
 plotCIgroup <- function(form, data, includeOverall=TRUE, ...){
     cfun <- function(x, ...){tmp <- confidenceInterval(x, ...); data.frame(y = tmp[1], ymin = tmp[2], ymax=tmp[3])}
@@ -249,46 +245,10 @@ plotCIgroup <- function(form, data, includeOverall=TRUE, ...){
       levels(mf[[2]]) <- c(levels(mf[[2]]), "Overall")
       mf <- rbind(mf, mf2)
     }
-    
+
     ggplot(mf, aes_string(x=names(mf)[2], y=names(mf)[1])) + stat_summary(fun.data=cfun, fun.args = dot.args)
 }
 
-searchVarLabels <- function(dat, str) UseMethod("searchVarLabels")
-searchVarLabels.data.frame <-
-function (dat, str)
-{
-    vlat <- NULL
-    if ("var.labels" %in% names(attributes(dat))) {
-        vlat <- "var.labels"
-      ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
-      labs <- attr(dat, vlat)
-    }
-    if ("variable.labels" %in% names(attributes(dat))) {
-        vlat <- "variable.labels"
-      ind <- sort(union(grep(str, attr(dat, vlat), ignore.case = T), grep(str, names(dat), ignore.case = T)))
-      labs <- attr(dat, vlat)
-    }
-    natt <- sapply(1:ncol(dat), function(i)names(attributes(dat[[i]])))
-    natt1 <- unique(c(unlist(natt)))
-    if("label" %in% natt1){
-      haslabs <- sapply(natt, function(x)"label" %in% x)
-      labs <- vlat <- sapply(1:length(haslabs), function(x)ifelse(haslabs[x], attr(dat[[x]], "label"), ""))
-      ind <- sort(union(grep(str, labs, ignore.case = T), grep(str, names(dat), ignore.case = T)))
-  }
-    if(is.null(vlat))stop("No Labels to Search")
-    vldf <- data.frame(ind = ind, label = labs[ind])
-    rownames(vldf) <- names(dat)[ind]
-    vldf
-}
-searchVarLabels.tbl_df <-
-function (dat, str)
-{
-    vlat <- unlist(sapply(1:ncol(dat), function(i)attr(dat[[i]], "label")))
-    ind <- sort(union(grep(str, vlat, ignore.case = T), grep(str, names(dat), ignore.case = T)))
-    vldf <- data.frame(ind = ind, label = vlat[ind])
-    rownames(vldf) <- names(dat)[ind]
-    vldf
-}
 
 freqDist <- function(x){
   tab <- table(x)
@@ -311,7 +271,7 @@ freqDist <- function(x){
 }
 
 histDiscrete <- function(x, data, ...){
-  m <- min(data[[x]], na.rm=TRUE)    
+  m <- min(data[[x]], na.rm=TRUE)
   ggplot(data, aes_string(x=x)) + geom_histogram(binwidth=1, center=m, color="black", fill="gray75")
 }
 
@@ -319,66 +279,6 @@ unalike <- function(x){
   o <- outer(x, x, "!=")
   mean(c(o[lower.tri(o)]), na.rm=T)
 }
-
-sig.cor <- function(x,y, method=c("z", "t", "sim"), n.sim = 1000, two.sided=TRUE, ...){
-meth <- match.arg(method)
-r <- cor(x,y, use="pairwise.complete.obs", ...)
-n <- sum(!is.na(x)*!is.na(y))
-if(meth == "z"){
-  z <- .5*log((1+r)/(1-r))
-  sez <- 1/sqrt(n-3)
-  pv <- (2^two.sided)*pnorm(abs(z), 0, sez, lower.tail=F)
-}
-if(meth == "t"){
-  tstat <- r*sqrt((n-2)/(1-r^2))
-  pv <- (2^two.sided)*pt(abs(tstat), n-2, lower.tail=F)
-}
-if(meth == "sim"){
-  xmat <- sapply(1:n.sim, function(z)sample(x, length(x), replace=F))
-  r0 <- c(cor(y, xmat))
-  pv <- {if(two.sided){
-    mean(r0 < (-abs(r))) + mean(r0 > abs(r))
-  }
-  else{
-    if(r > 0){
-      mean(r > r0)
-    }
-    else{
-      mean(r < r0)
-    }
-  }}
-}
-return(list(r=r, p = pv))
-}
-
-
-pwCorrMat <- function(X, method=c("z", "t", "sim"), ...){
-  meth <- match.arg(method)
-  out <- p.out <- diag(ncol(X))
-  for(i in 1:(ncol(X)-1)){
-    for(j in i:ncol(X)){
-      f <- sig.cor(X[,i], X[,j], method=meth, ...)
-      out[i,j] <- out[j,i] <- f$r
-      p.out[i,j] <- p.out[j,i] <- f$p
-    }
-  }
-  outSig <- matrix(sprintf("%.3f", out), ncol=ncol(X))
-  outSig[which(p.out > .05, arr.ind=T)] <- ""
-  diag(outSig) <- ""
-  outSig[upper.tri(outSig)] <- ""
-  colnames(outSig) <- colnames(out) <- rownames(outSig) <- rownames(out) <- colnames(p.out) <- rownames(p.out) <- colnames(X)
-  ret <- list(rSig=outSig, r=out, p = p.out )
-  class(ret) <- "pwc"
-  return(ret)
-}
-
-print.pwc <- function(x, ...){
-cat("All Correlations\n")
- print(noquote(round(x$r,3)))
-cat("\nOnly Significant Correlations\n")
- print(noquote(x$rSig))
-}
-
 
 GKGamma <- function (x, y = NULL, conf.level = NA, ...){
 ## Function taken from DescTools v0.99.22
@@ -442,57 +342,9 @@ barplotStats <- function(x, y, data, stat="sum", includeN = FALSE, ...){
     tabx <- table(data[[x]])
     levels(data[[x]]) <- paste(levels(data[[x]]), "\n(", tabx, ")", sep="")
   }
-  ggplot(data, aes_string(x=x, y=y)) + stat_summary(fun.y = stat, geom="bar", fun.args=dot.args)
+  ggplot(data, aes_string(x=x, y=y)) + stat_summary(fun = stat, geom="bar", fun.args=dot.args)
 }
 
-sumStats <- function(data, vars, byvar=NULL, convertFactors=FALSE){
-  if(is.null(byvar)){
-    X <- data[,vars, drop=FALSE]
-    if(convertFactors){
-      for(i in 1:ncol(X)){
-        if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
-      }
-    }
-    means <- colMeans(X, na.rm=T)
-    sds <- apply(X, 2, sd, na.rm=T)
-    qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
-    iqr <- qtiles[,4]-qtiles[,2]
-    n <- apply(X, 2, function(x)sum(!is.na(x)))
-    na <- apply(X, 2, function(x)sum(is.na(x)))
-    out <- cbind(means, sds, iqr, qtiles, n, na)
-    colnames(out) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
-  }
-  else{
-    if(!is.factor(data[[byvar]])){
-      data[[byvar]] <- as.factor(data[[byvar]])
-    }
-    unvals <- levels(data[[byvar]])
-    out <- vector(mode="list", length=length(unvals))
-    for(i in 1:length(unvals)){
-      X <- data[which(data[[byvar]] == unvals[i]),vars, drop=FALSE]
-      if(convertFactors){
-        for(i in 1:ncol(X)){
-          if(is.factor(X[[i]]))X[[i]] <- as.numeric(X[[i]])
-        }
-      }
-      means <- colMeans(X, na.rm=T)
-      sds <- apply(X, 2, sd, na.rm=T)
-      qtiles <- t(apply(X, 2, quantile, probs = c(0,.25,.5,.75,1), na.rm=TRUE))[,,drop=FALSE]
-      iqr <- qtiles[,4]-qtiles[,2]
-      n <- apply(X, 2, function(x)sum(!is.na(x)))
-      na <- apply(X, 2, function(x)sum(is.na(x)))
-      out[[i]] <- cbind(means, sds, iqr, qtiles, n, na)
-      colnames(out[[i]]) <- c("Mean", "SD", "IQR", "0%", "25%", "50%", "75%", "100%", "n", "NA")
-      names(out)[[i]] <- paste(byvar, " = ", unvals[i], sep="")
-    }
-  }
-  if(class(out) == "list" & length(vars) == 1){
-    n <- names(out)
-    out <- do.call(rbind, out)
-    rownames(out) <- n
-  }
-  out
-}
 
 histNorm <- function(x, data, normCurve=TRUE, densCurve=FALSE, bins=30){
   s <- seq(min(data[[x]], na.rm=TRUE), max(data[[x]], na.rm=T), length=100)

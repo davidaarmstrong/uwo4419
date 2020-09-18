@@ -12,5 +12,12 @@ plotCIgroup(form, data, includeOverall = TRUE, ...)
   \item{\dots}{Other arguments to be passed down to \code{\link{confidenceInterval}}. }
 }
 \value{
-A graph
+A ggplot.
 }
+\examples{
+data(alberta)
+alberta$k6group <- factor(alberta$k6group,
+   labels = attr(attr(alberta$k6group, "labels"), "names"))
+plotCIgroup(k3c ~ k6group, data=alberta)
+}
+

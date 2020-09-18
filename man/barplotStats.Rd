@@ -17,3 +17,7 @@ barplotStats(x, y, data, stat="sum", includeN=FALSE, ...)
 \value{
 A plot
 }
+\examples{
+data(alberta)
+barplotStats("k6group", "k3c", alberta, stat="mean")
+}

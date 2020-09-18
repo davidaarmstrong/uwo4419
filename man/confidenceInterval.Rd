@@ -13,3 +13,7 @@ confidenceInterval(x, confidence = 0.95, na.rm = TRUE, distr = c("normal", "t"))
 }
 \value{
 A vector of values giving the mean, confidence interval and standard error.}
+\examples{
+data(alberta)
+confidenceInterval(alberta$k7)
+}

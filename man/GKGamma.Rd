@@ -17,3 +17,7 @@ GKGamma(x, y = NULL, conf.level = NA, ...)
 \value{
 A test statistic and optional confidence interval.
 }
+\examples{
+data(alberta)
+GKGamma(alberta$d2, alberta$k6group)
+}

@@ -17,3 +17,7 @@ A matrix with the following columns:
   \item{CuPct}{The cumulative percentage of observations in each group}
 }
 }
+\examples{
+data(alberta)
+freqDist(alberta$k6group)
+}
